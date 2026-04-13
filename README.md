@@ -1,1 +1,0 @@
-# VOT-project-gabriel-kristian
