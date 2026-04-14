@@ -35,7 +35,11 @@ spec:
       interval: 1h0m0s
   values:
     prometheus-node-exporter:
-      enabled: false
+      hostRootFsMount: false
+      tolerations:
+        - key: "node-role.kubernetes.io/master"
+          operator: "Exists"
+          effect: "NoSchedule"
     grafana:
       adminPassword: "admin"
       # Enable dashboard provisioning for Loki if needed later
