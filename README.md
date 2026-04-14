@@ -35,22 +35,50 @@ Deployment into the Kubernetes cluster is entirely automated via the GitOps meth
 If you wish to run the API locally without Docker or Kubernetes:
 
 1. Install dependencies:
-   ```bash
+   ```
    npm install
    ```
 2. Start the development server (watches for changes):
-   ```bash
+   ```
    npm run dev
    ```
 3. Run the test suite:
-   ```bash
+   ```
    npm test
    ```
 
 ## Kubernetes Access
 
 To view the GitOps dashboard on a running cluster:
-```bash
+```
 kubectl port-forward svc/ww-gitops-weave-gitops -n flux-system 9001:9001
 ```
 Then navigate to `http://localhost:9001` (Credentials: `admin` / `admin`).
+
+To view the **Grafana Monitoring Dashboard** (which includes Prometheus metrics and Loki logs):
+```
+kubectl port-forward svc/monitoring-kube-prometheus-stack-grafana -n monitoring 3000:80
+```
+Then navigate to `http://localhost:3000` (Credentials: `admin` / `admin`).
+
+## Infrastructure & Secrets Management
+
+We use HashiCorp **Terraform** to provision the core Kubernetes namespace infrastructure and deploy the **Bitnami Sealed Secrets** controller via Helm. This enables us to safely store encrypted credentials directly in this repository without exposing plaintext secrets.
+
+### How to use Sealed Secrets
+To rotate or add a new encrypted secret (like the Discord Webhook):
+
+1. **Install Kubeseal CLI (macOS)**
+   ```sh
+   brew install kubeseal
+   ```
+2. **Fetch the Public Certificate**
+   ```sh
+   kubeseal --fetch-cert --controller-name sealed-secrets-controller --controller-namespace sealed-secrets > pub-cert.pem
+   ```
+3. **Encrypt your Secret**
+   ```sh
+   kubectl create secret generic my-secret --namespace monitoring --from-literal=token="super-secret" --dry-run=client -o yaml | kubeseal --cert pub-cert.pem --format yaml > sealed-secret.yaml
+   ```
+4. **Deploy**
+   Commit the resulting `sealed-secret.yaml` to the `k8s/cluster` directory. FluxCD will automatically sync it, and the Sealed Secrets controller will decrypt it safely inside the cluster.
