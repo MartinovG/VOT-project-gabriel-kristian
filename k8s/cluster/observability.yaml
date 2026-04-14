@@ -24,7 +24,6 @@ metadata:
 spec:
   interval: 1h0m0s
   targetNamespace: monitoring
-  createNamespace: true
   chart:
     spec:
       chart: kube-prometheus-stack
@@ -52,7 +51,6 @@ metadata:
 spec:
   interval: 1h0m0s
   targetNamespace: monitoring
-  createNamespace: true
   chart:
     spec:
       chart: loki-stack
