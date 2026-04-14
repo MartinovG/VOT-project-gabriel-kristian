@@ -25,4 +25,4 @@ metadata:
   namespace: monitoring
 type: Opaque
 stringData:
-  address: "https://discord.com/api/webhooks/PLACEHOLDER/PLACEHOLDER"
+  address: "https://discord.com/api/webhooks/1493603255043752058/nTtSAeR9sv1xJEkWBNCeJ8CPnqDRgxI5Mu-YmBKBFp_jDxmnbqY1maNUxcBnTqnw6Xbq"
