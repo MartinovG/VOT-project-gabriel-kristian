@@ -1,12 +1,7 @@
 import express from 'express';
 import helmet from 'helmet';
 import cors from 'cors';
-import path from 'path';
-import { fileURLToPath } from 'url';
 import { router as apiRoutes } from './routes/api.js';
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
 
 export const app = express();
 
@@ -22,6 +17,7 @@ app.use('/api', apiRoutes);
 
 app.use((err, req, res, next) => {
     console.error(err.stack);
+    if(res.headersSent) { return next(err); }
     res.status(500).send('Something broke!');
 });
 
