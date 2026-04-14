@@ -16,7 +16,7 @@ spec:
   interval: 1h0m0s
   url: https://grafana.github.io/helm-charts
 ---
-apiVersion: helm.toolkit.fluxcd.io/v2beta2
+apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
   name: kube-prometheus-stack
@@ -45,7 +45,7 @@ spec:
           url: http://loki.monitoring.svc.cluster.local:3100
           access: proxy
 ---
-apiVersion: helm.toolkit.fluxcd.io/v2beta2
+apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
   name: loki-stack
