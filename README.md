@@ -1,84 +1,79 @@
-# DevOps Task Manager - Full CI/CD Pipeline
+# DevOps Task Manager
 
-This repository contains a full CI/CD pipeline implementation for a web-based Node.js (Express) application, demonstrating modern DevOps and GitOps practices.
+## Описание на проекта (Project Description)
+**Какъв проблем решава?**
+Този проект решава проблема с ръчното, бавно и предразположено към грешки внедряване (deployment) на софтуер. Той предоставя напълно автоматизиран процес (GitOps), който гарантира качеството на кода (чрез pre-commit hooks и CI тестове), сигурно управление на тайни (Secrets Management) и пълна видимост (Observability) върху здравето на системата. В основата си, приложението е система за управление на задачи (Task Manager), свързана с PostgreSQL база данни.
 
-## Project Structure & Features
+## Архитектурна / Инфраструктурна диаграма
+![Infrastructure Diagram](docs/architecture.png)  
+*(Забележка: Диаграмата се намира в папка `docs/architecture.png`)*
 
-### 1. Web Application
-A REST API built with Express.js and a frontend UI for managing active tasks. The application is containerized using a highly optimized, multi-stage Dockerfile configured to run as a non-root user for enhanced security.
+## Списък на използваните технологии и версии
+* **Програмен език и Фреймуърк:** Node.js (v20), Express.js
+* **База данни:** PostgreSQL
+* **CI/CD Автоматизация:** Jenkins (Continuous Integration), FluxCD (Continuous Deployment - GitOps)
+* **Контейнеризация и Оркестрация:** Docker, Kubernetes
+* **Infrastructure as Code (IaC):** Terraform
+* **Secrets & Configuration Management:** Bitnami Sealed Secrets
+* **Observability (Метрики и Логове):** Kube-Prometheus-Stack (Prometheus, Grafana, Alertmanager), Loki, Promtail
+* **Code Quality & Security:** Husky (Pre-commit hooks), ESLint, Secretlint
+* **Известия (Alerting):** Discord Webhooks
 
-### 2. Pre-commit Hooks (Security & Quality)
-We strictly enforce code quality and security at the developer level using **Husky** Git hooks:
-- **ESLint**: Scans and blocks bad code structure or unused variables from being committed.
-- **Secretlint**: Scans every commit to prevent hardcoded passwords, API tokens, and secrets from accidentally leaking into the repository.
+## Структура на проекта
+* `src/` - Изходен код на Node.js Backend приложението (Routes, Database connection).
+* `public/` - Изходен код на Frontend частта (HTML/CSS/JS).
+* `tests/` - Unit тестове (с помощта на Supertest).
+* `k8s/` - Kubernetes манифести, разделени на `app/` (за приложението) и `cluster/` (за GitOps контролерите и инфраструктурните компоненти).
+* `terraform/` - Terraform конфигурации за провизиране на базовите Namespaces и Helm чартове (Sealed Secrets).
+* `Jenkinsfile` - Декларативен CI пайплайн за автоматизирано тестване и билдване.
+* `Dockerfile` - Multi-stage конфигурация за създаване на сигурен и оптимизиран Docker image.
 
-### 3. Continuous Integration (CI) - Jenkins
-The automated CI cycle is defined declaratively in the `Jenkinsfile`. Upon execution, the pipeline:
-1. Checks out the source code.
-2. Installs dependencies securely (`npm ci --ignore-scripts`).
-3. Runs the Linters and Secret Scanners to double-check code health.
-4. Executes the native Node.js unit tests (`supertest`).
-5. Builds a new Docker image tagged with the specific Jenkins `BUILD_NUMBER`.
-6. Pushes the Docker image to the public Docker Hub registry.
-7. Sends real-time Pipeline Status notifications directly to a Discord server via Webhooks.
+## Инструкции за стартиране (Стъпка по стъпка)
 
-### 4. Continuous Deployment (CD) - FluxCD & GitOps
-Deployment into the Kubernetes cluster is entirely automated via the GitOps methodology.
-- **FluxCD** runs inside the Kubernetes cluster, constantly watching this GitHub repository.
-- Changes pushed to the `k8s/` directory (like updating the Deployment or Service) are automatically detected and reconciled inside the cluster without manual `kubectl` intervention.
-- **Weave GitOps**: A visual UI dashboard is installed to monitor the continuous deployment health and sync status natively.
-
----
-
-## Local Development
-
-If you wish to run the API locally without Docker or Kubernetes:
-
-1. Install dependencies:
-   ```
-   npm install
-   ```
-2. Start the development server (watches for changes):
-   ```
-   npm run dev
-   ```
-3. Run the test suite:
-   ```
-   npm test
-   ```
-
-## Kubernetes Access
-
-To view the GitOps dashboard on a running cluster:
+### 1. Локално стартиране (без Docker)
 ```
-kubectl port-forward svc/ww-gitops-weave-gitops -n flux-system 9001:9001
+npm install
+npm run dev
 ```
-Then navigate to `http://localhost:9001` (Credentials: `admin` / `admin`).
 
-To view the **Grafana Monitoring Dashboard** (which includes Prometheus metrics and Loki logs):
+### 2. Стартиране чрез Docker (Контейнеризирано)
+```
+docker build -t task-manager-app .
+docker run -p 3000:3000 task-manager-app
+```
+
+### 3. Пълен цикъл в Kubernetes (IaC + GitOps)
+
+**Стъпка 3.1: Изграждане на базовата инфраструктура (Terraform)**
+Чрез Terraform автоматично се създават нужните Namespaces и се инсталира Sealed Secrets контролера:
+```
+cd terraform
+terraform init
+terraform apply -auto-approve
+```
+
+**Стъпка 3.2: Деплоймънт чрез GitOps (FluxCD)**
+Свързване на клъстера с GitHub хранилището. FluxCD автоматично ще започне да следи за промени и да изгражда ресурсите:
+```
+flux bootstrap github \
+  --owner=MartinovG \
+  --repository=VOT-project-gabriel-kristian \
+  --branch=main \
+  --path=./k8s/cluster \
+  --personal
+```
+
+**Стъпка 3.3: Достъпване на услугите**
+След като инфраструктурата се вдигне успешно, достъпете приложението и мониторинга чрез Port-Forward:
+
+*За Web Приложението:*
+```
+kubectl port-forward svc/vot-express-service 8080:80
+```
+След това отворете `http://localhost:8080` във вашия браузър.
+
+*За Grafana (Metrics & Logs):*
 ```
 kubectl port-forward svc/monitoring-kube-prometheus-stack-grafana -n monitoring 3000:80
 ```
-Then navigate to `http://localhost:3000` (Credentials: `admin` / `admin`).
-
-## Infrastructure & Secrets Management
-
-We use HashiCorp **Terraform** to provision the core Kubernetes namespace infrastructure and deploy the **Bitnami Sealed Secrets** controller via Helm. This enables us to safely store encrypted credentials directly in this repository without exposing plaintext secrets.
-
-### How to use Sealed Secrets
-To rotate or add a new encrypted secret (like the Discord Webhook):
-
-1. **Install Kubeseal CLI (macOS)**
-   ```
-   brew install kubeseal
-   ```
-2. **Fetch the Public Certificate**
-   ```
-   kubeseal --fetch-cert --controller-name sealed-secrets-controller --controller-namespace sealed-secrets > pub-cert.pem
-   ```
-3. **Encrypt your Secret**
-   ```
-   kubectl create secret generic my-secret --namespace monitoring --from-literal=token="super-secret" --dry-run=client -o yaml | kubeseal --cert pub-cert.pem --format yaml > sealed-secret.yaml
-   ```
-4. **Deploy**
-   Commit the resulting `sealed-secret.yaml` to the `k8s/cluster` directory. FluxCD will automatically sync it, and the Sealed Secrets controller will decrypt it safely inside the cluster.
+След това отворете `http://localhost:3000` (Потребител/Парола според вашите настройки).
