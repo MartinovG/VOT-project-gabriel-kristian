@@ -6,3 +6,6 @@ resources:
   - weave-gitops-dashboard.yaml
   - app-kustomization.yaml
   - postgres.yaml
+  - alertmanager-config.yaml
+  - sealed-discord-secret.yaml
+  - sealed-db-secret.yaml
