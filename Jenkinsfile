@@ -57,13 +57,13 @@ pipeline {
                 success {
                     script {
                         def msg = "*Tests & Linting Passed successfully for Build #${env.BUILD_NUMBER}!*"
-                        sh "curl -X POST -H 'Content-type: application/json' --data '{\"content\":\"${msg}\"}' ${env.WEBHOOK_URL}"
+                        sh "curl -X POST -H 'Content-type: application/json' --data '{\"content\":\"${msg}\"}' \$WEBHOOK_URL"
                     }
                 }
                 failure {
                     script {
                         def msg = "*Tests or Linting FAILED for Build #${env.BUILD_NUMBER}!*"
-                        sh "curl -X POST -H 'Content-type: application/json' --data '{\"content\":\"${msg}\"}' ${env.WEBHOOK_URL}"
+                        sh "curl -X POST -H 'Content-type: application/json' --data '{\"content\":\"${msg}\"}' \$WEBHOOK_URL"
                     }
                 }
             }
@@ -93,7 +93,7 @@ pipeline {
                 success {
                     script {
                         def msg = "*New Docker Image Pushed to Docker Hub!*\\nImage: `${DOCKERHUB_USERNAME}/${IMAGE_NAME}:${IMAGE_TAG}`"
-                        sh "curl -X POST -H 'Content-type: application/json' --data '{\"content\":\"${msg}\"}' ${env.WEBHOOK_URL}"
+                        sh "curl -X POST -H 'Content-type: application/json' --data '{\"content\":\"${msg}\"}' \$WEBHOOK_URL"
                     }
                 }
             }
