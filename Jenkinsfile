@@ -11,7 +11,6 @@ pipeline {
         IMAGE_NAME = "vot-project-gabriel-kristian"
         IMAGE_TAG = "${env.BUILD_NUMBER}"
         WEBHOOK_URL = credentials('discord-webhook-url') 
-        NODE_ENV = 'production'
     }
 
     stages {
